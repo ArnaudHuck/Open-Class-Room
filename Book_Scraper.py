@@ -1,90 +1,142 @@
-import pandas as pd
 import requests
+from typing import Dict, Any
 from bs4 import BeautifulSoup
-import csv
+import urllib3
+from urllib.parse import urlparse
+import urllib.request
 
 
-def get_data(url):
-    r = requests.get(url)
-    return r.text
+# Creates get_data function and use requests module to access URL
+# content and transform it into text object decoded by utf-8
+def _get_data(url):
+    """
+    :param url:
+    :return:
+    """
+    http = urllib3.PoolManager()
+    response = http.request('GET', url)
+    soup = BeautifulSoup(response.data.decode('utf-8'), features="html.parser")
+    return soup
 
 
-URL = get_data('https://books.toscrape.com/catalogue/a-light-in-the-attic_1000/index.html')
-soup = BeautifulSoup(URL, 'html.parser')
-# Finds all images
-for item in soup.find_all('img'):
-    book_image = (item['src'])
+def _get_book_url(soup: BeautifulSoup):
+    """
+    :param soup:
+    :return:
+    """
+    books = soup.find("li", {"class": "col-xs-6 col-sm-4 col-md-3 col-lg-3"})
+    for elements in books:
+        book_url = elements.find("href")
+        print(book_url)
+        pass
 
-Book_Data = soup.find(class_='container-fluid page')
-Product_Information = Book_Data.find_all('tr')
-# prints first Item found in Items
-# print(Product_Information[0])
-# print(Product_Information[0].find('th').get_text())
-# print(Product_Information[0].find('td').get_text())
 
-# Create an empty dictionary
-book_dictionary = {}
-# Finds all 'th' occurrences and set those as a list
-Product_Information_Name = [item.find('th').get_text() for item in Product_Information]
-Product_Information_Name.pop(1)
-Product_Information_Name.pop(3)
-Product_Information_Name.pop(4)
-print(Product_Information_Name)
-# Finds all 'td' occurrences and set those as a list
-Product_Information_Value = [item.find('td').get_text() for item in Product_Information]
-Product_Information_Value.pop(1)
-Product_Information_Value.pop(3)
-Product_Information_Value.pop(4)
-print(Product_Information_Value)
-# Finds 'p' occurrences then find in the product_page the first children
-product_page = soup.find(class_='product_page')
-book_description = product_page.find('p', recursive=False).get_text()
-# Finds book's title
-books_title = soup.find(class_='col-sm-6 product_main')
-book_title = books_title.find('h1').get_text()
-book_ratings = books_title.select('div > p')[1].get_text(strip=True)
-print(book_ratings)
-book_rating = ('1 star', '2 stars', '3 stars', '4 stars', '5 stars')
+def _get_rating(soup: BeautifulSoup) -> int:
+    """
+    :param soup:
+    :return:
+    """
+    star_rating_tag = soup.find("p", {"class": "star-rating"})
+    star_rating_class = star_rating_tag["class"]
+    rating_class_name = star_rating_class[1]
+    if rating_class_name == "One":
+        return 1
+    elif rating_class_name == "Two":
+        return 2
+    elif rating_class_name == "Three":
+        return 3
+    elif rating_class_name == "Four":
+        return 4
+    elif rating_class_name == "Five":
+        return 5
 
-'''
-if 'One' in book_ratings:
-    book_rating = book_rating[0]
-    print(book_rating)
-if 'Two' in book_ratings:
-    book_rating = book_rating[1]
-    print(book_rating)
-if 'Three' in book_ratings:
-    book_rating = book_rating[2]
-    print(book_rating)
-if 'Four' in book_ratings:
-    book_rating = book_rating[3]
-    print(book_rating)
-if 'Five' in book_ratings:
-    book_rating = book_rating[4]
-    print(book_rating)
-'''
 
-# Finds book's category
-book_profile = soup.find(class_='breadcrumb')
-book_categories = book_profile.find_all('li')
-book_category = book_categories[2].get_text()
+def _get_title(soup: BeautifulSoup):
+    """
+    :param soup:
+    :return:
+    """
+    title = soup.find('h1').get_text()
+    return title
 
-for num, name in enumerate(Product_Information_Name, start=0):
-    print(f'Product_Information {num}: {name}, value: {Product_Information_Value[num]}')
-    book_dictionary[name] = Product_Information_Value[num]
 
-Product_Information_Name.append('Description')
-book_dictionary['Description'] = book_description
-Product_Information_Name.append('Title')
-book_dictionary['Title'] = book_title
-Product_Information_Name.append('Category')
-book_dictionary['Category'] = book_category
-Product_Information_Name.append('Rating')
-book_dictionary['Rating'] = book_rating
-Product_Information_Name.append('Image_Link')
-book_dictionary['Image_Link'] = ()
+def _get_category(soup: BeautifulSoup):
+    """
+    :param soup:
+    :return:
+    """
+    book_breadcrumb = soup.find(class_='breadcrumb')
+    if book_breadcrumb is not None:
+        book_items = book_breadcrumb.find_all('a')
+        category_content = book_items[2].get_text()
+        return category_content
 
-Books_Features = pd.DataFrame([book_dictionary])
 
-print(Books_Features)
-Books_Features.to_csv('Book_Information.csv')
+def _get_table_value(soup: BeautifulSoup, header_name: str):
+    """
+    :param soup:
+    :param header_name:
+    :return:
+    """
+    table = soup.find(class_="table")
+    table_elements = table.find_all('tr')
+    for element in table_elements:
+        header = element.find('th')
+        cells = element.find('td')
+        if (header.contents[0]) == header_name:
+            header_name = cells.contents[0]
+            return header_name
+
+
+def _get_description(soup: BeautifulSoup):
+    """
+    :param soup:
+    :return:
+    """
+    book_para = soup.find(class_="product_page")
+    description = book_para.find('p', recursive=False)
+    if description is None:
+        description = ''
+    else:
+        description = description.get_text()
+    return description
+
+
+def _get_img(soup: BeautifulSoup):
+    """
+    :param soup:
+    :return:
+    """
+    web_url = 'https://books.toscrape.com/'
+    for item in soup.find_all('img'):
+        image = (item['src'])
+        image_link = urlparse(image)
+        path = image_link.path
+        new_path = path.split('/')
+        final_path = [element for element in new_path if element != '..']
+        final_url = web_url + final_path[0] + '/' + final_path[1] + '/' + final_path[2] + '/'+ final_path[3] + '/' + final_path[4]
+        urllib.request.urlretrieve(final_url, (item['alt'] + '.jpg'))
+        return final_url
+
+
+def scrap_book_url(url: str) -> Dict[str, Any]:
+    """
+    :param url:
+    :return:
+    """
+    book_soup = _get_data(url)
+    book_title = _get_title(book_soup)
+    book_category = _get_category(book_soup)
+    book_description = _get_description(book_soup)
+    book_image = _get_img(book_soup)
+    upc = _get_table_value(book_soup, 'UPC')
+    price_excl_tva = _get_table_value(book_soup, 'Price (excl. tax)')
+    price_incl_tva = _get_table_value(book_soup, 'Price (incl. tax)')
+    stock = _get_table_value(book_soup, 'Availability')[10:12]
+    rating = _get_rating(book_soup)
+    book_features = {'title': book_title, 'category': book_category, 'description': book_description,
+                     'image link': book_image, 'upc': upc, 'price excluding taxes': price_excl_tva,
+                     'prince including taxes': price_incl_tva,
+                     'in stock availability': stock, 'star rating': rating}
+    return book_features
+
