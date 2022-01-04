@@ -1,0 +1,7 @@
+.idea/
+*.jpg
+*cpython-*.py
+__pycache__/
+env/
+*.csv
+*.log
