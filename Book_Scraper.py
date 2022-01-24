@@ -103,19 +103,22 @@ def _get_img(soup: BeautifulSoup):
     for item in soup.find_all('img'):
         image = (item['src'])
         image_name = (item['alt'])
-        new_image_name = [element for element in image_name if element != '/']
-        final_image_name = ''.join(new_image_name) + '.jpg'
+        new_image_name_1 = [element for element in image_name if element != ':']
+        new_image_name_2 = [element for element in new_image_name_1 if element != '/']
+        new_image_name_3 = [element for element in new_image_name_2 if element != ' ']
+        new_image_name_4 = [element for element in new_image_name_3 if element != '"']
+        final_image_name = ''.join(new_image_name_4) + '.jpg'
         image_link = urlparse(image)
-        path = image_link.path
-        new_path = path.split('/')
+        image_object = image_link.path
+        new_path = image_object.split('/')
         final_path = [element for element in new_path if element != '..']
-        final_url = web_url + final_path[0] + '/' + final_path[1] + '/' + final_path[2] + '/'+ final_path[3] + '/' + final_path[4]
-        saving_path = os.path.join('/Users/Henry/Desktop/gitprojects/Open_Classroom_projects/Project2', category_name)
+        final_url = web_url + final_path[0] + '/' + final_path[1] + '/' + final_path[2] + '/' + final_path[3] + '/' + final_path[4]
+        saving_path = os.path.join(category_name)
         if not os.path.isdir(saving_path):
             os.makedirs(saving_path)
         os.chdir(saving_path)
         urllib.request.urlretrieve(final_url, final_image_name)
-        os.chdir('/Users/Henry/Desktop/gitprojects/Open_Classroom_projects/Project2')
+        os.chdir('..')
         return final_url
 
 

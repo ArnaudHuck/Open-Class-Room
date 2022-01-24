@@ -20,10 +20,7 @@ def export_categories_dictionaries_and_images() -> List[Tuple[str, List[Dict]]]:
     all_category_and_dictionary_tuples = [
         (category_url_and_name[1] + '.csv', scrap_category_books(category_url_and_name[0])) for
         category_url_and_name in category_urls_and_names]
-    saving_path = os.path.join('/Users/Henry/Desktop/gitprojects/Open_Classroom_projects/Project2')
-    if not os.path.isdir(saving_path):
-        os.makedirs(saving_path)
-    os.chdir(saving_path)
+    os.getcwd()
     for category_and_dictionary_tuple in all_category_and_dictionary_tuples:
         export_list_to_csv(category_and_dictionary_tuple[1], (category_and_dictionary_tuple[0]))
 
@@ -52,6 +49,7 @@ if __name__ == '__main__':
         print("Invalid parameters")
 
 
-# export_dictionary_and_image('https://books.toscrape.com/catalogue/frankenstein_20/index.html', "Frankenstein.csv")
+# export_dictionary_and_image('https://books.toscrape.com/catalogue/spark-joy-an-illustrated-master-class-on-the-art-of-organizing-and-tidying-up_927/index.html',
+#                            'Spark Joy An Illustrated Master Class on the Art of Organizing and Tidying Up.csv')
 # export_category_dictionaries_and_images('https://books.toscrape.com/catalogue/category/books/mystery_3/index.html',mystery.csv 'm')
-# export_categories_dictionaries_and_images()
+export_categories_dictionaries_and_images()

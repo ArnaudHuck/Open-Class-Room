@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup
 from scrap_page_url import scrap_page_books_category
 
 
-def _get_data(url):
+def _get_data(url: str):
     """
     :param url: give a url
     :return: return the text from the response object
