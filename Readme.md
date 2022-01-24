@@ -25,11 +25,11 @@ Naviguez vers le repertoire souhaitez avec les commandes cd et ls
 
 4. executer le programme :
 Scraping one book:
-	$ python -c "from main import export_dictionary_and_image; export_dictionary_and_image('https://books.toscrape.com/catalogue/frankenstein_20/index.html', 'Frankenstein')"
+	$ python main.py book https://books.toscrape.com/catalogue/frankenstein_20/index.html 		Frankenstein.csv
 
 Scraping a category: 
-	$ python -c "from main import export_category_dictionaries_and_images; export_category_dictionaries_and_images('https://books.toscrape.com/catalogue/category/books/			mystery_3/index.html', 'mystery.csv')"
+	$ python main.py category https://books.toscrape.com/catalogue/category/books/mystery_3/index.html mystery.csv
 
 
 Scraping all the books:
-	$ python -c "from main import export_categories_dictionaries_and_images; export_categories_dictionaries_and_images()"
+	$ python main.py all 
