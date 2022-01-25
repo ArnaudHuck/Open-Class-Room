@@ -48,8 +48,3 @@ if __name__ == '__main__':
     else:
         print("Invalid parameters")
 
-
-# export_dictionary_and_image('https://books.toscrape.com/catalogue/spark-joy-an-illustrated-master-class-on-the-art-of-organizing-and-tidying-up_927/index.html',
-#                            'Spark Joy An Illustrated Master Class on the Art of Organizing and Tidying Up.csv')
-# export_category_dictionaries_and_images('https://books.toscrape.com/catalogue/category/books/mystery_3/index.html',mystery.csv 'm')
-export_categories_dictionaries_and_images()
